@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Fichiers sources">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Fichiers d%27en-tête">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Fichiers de ressources">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="offsets">
+      <UniqueIdentifier>{109cb23e-9f64-4f4b-83ad-bbcfa4e79683}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="memo_tools">
+      <UniqueIdentifier>{45594cde-4598-49ae-81a7-4dbb931a489d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cmd">
+      <UniqueIdentifier>{b5f1aff7-141e-4ea9-9604-e8a78dd3eff9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Player">
+      <UniqueIdentifier>{1767537e-5ce0-4e8c-bcf5-6b84e4f22759}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="offsets.h">
+      <Filter>offsets</Filter>
+    </ClInclude>
+    <ClInclude Include="memo_tools.h">
+      <Filter>memo_tools</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Vec3.h">
+      <Filter>Player</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="memo_tools.cpp">
+      <Filter>memo_tools</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
