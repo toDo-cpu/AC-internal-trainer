@@ -5,16 +5,16 @@
 #include <iostream>
 #include <string>
 
+#include "offsets.h"
 #include "memo_tools.h"
 #include "cmd.h"
 #include "Player.h"
+#include "dllHelper.h"
+#include "aimbot.h"
 
+#define DEBUG
 #define BUFFER_NAME_MAX_SIZE 17
 #define BUFFER_MAP_NAME_SIZE 11
-
-void PrintBanner();
-
-std::string boolToStr(bool mybool);
 
 DWORD ThreadMain(HMODULE hModule);
 
@@ -48,57 +48,61 @@ DWORD ThreadMain(HMODULE hModule)
 
     bool bHealth = false,
         bAmmo = false,
-        bAmmoNop = false;
+        bAmmoNop = false,
+        bAimbot = false;
+
+    HANDLE hAimbotThread = INVALID_HANDLE_VALUE;
+    DWORD dwAimbotThreadExitCode = -1;
+    pAimbotThreadParams AimbotParams = NULL;
+    bool threadAlive = false;
     //Create cmd
     FILE* f = cmd::CreateCmd();
 
-    PrintBanner();
+    //&bHealth, &bAmmo , &bAmmoNop
+    PrintBanner(&bHealth, &bAmmo , &bAmmoNop, &bAimbot);
 
     //Resolve all base pointer
-    uintptr_t moduleBaseAdress = (uintptr_t)GetModuleHandle(L"ac_client.exe");
-    uintptr_t myPlayerBaseAdress = moduleBaseAdress + LocalPLayerOffset;
-    uintptr_t EntityListPtr = moduleBaseAdress + EntityListPtrOffset;
+    uintptr_t moduleBaseAdress = (uintptr_t)GetModuleHandle(NULL);
+    uintptr_t myPlayerBaseAdress = moduleBaseAdress + (uintptr_t)LocalPLayerOffset;
+    uintptr_t entListBaseAdress = moduleBaseAdress + (uintptr_t)EntityListPtrOffset;
+    uintptr_t playerCounterAdress = moduleBaseAdress + (uintptr_t)PlayerCounterOffset;
+    uintptr_t currentMapBaseAdress = moduleBaseAdress + (uintptr_t)CurrentMapNameOffset;
+    uintptr_t decAmmoInstructionAdress = moduleBaseAdress + (uintptr_t)decAmmoInstructionOffset;
 
-    //Resole all pointers 
     //Save map name to control if map changed
+    char* CurrentMapName = (char*)(currentMapBaseAdress);
 
-    char* CurrentMapName = (char*)(moduleBaseAdress + CurrentMapNameOffset);
-    char* oldMapName = new char[BUFFER_MAP_NAME_SIZE];
+    //number of player in the room ( localplayer counted )
+    int32_t* currentPlayerCounter = (int32_t*)(playerCounterAdress);
 
-    memcpy_s(oldMapName, BUFFER_MAP_NAME_SIZE, CurrentMapName, BUFFER_MAP_NAME_SIZE);
+    //LocalPlayer
+    Entity* LocalPlayer = *(Entity**)(myPlayerBaseAdress);
 
-    //Others ptr
-    uintptr_t decAmmoInstructionAdress = moduleBaseAdress + decAmmoInstructionOffset;
-    int* playerCounter = (int*)(moduleBaseAdress + PlayerCounterOffset - 0x1);
+    //EntityList
+    EntityList* entList = *(EntityList**)entListBaseAdress;
 
-    //Declare localplayer obj
-    PlayerEntity* LocalPlayer = new PlayerEntity(myPlayerBaseAdress);
-
-    //Declare entity list
-    std::vector <PlayerEntity> EntityList[10];
+#ifdef DEBUG
+    std::cout << "DEBUG activated" << std::endl;
+    std::cout << "uintptr_t moduleBaseAdress            = " << moduleBaseAdress << std::endl;
+    std::cout << "uintptr_t myPlayerBaseAdress          = " << myPlayerBaseAdress << std::endl;
+    std::cout << "uintptr_t entListBaseAdress           = " << entListBaseAdress << std::endl;
+    std::cout << "uintptr_t playerCounterAdress         = " << playerCounterAdress << std::endl;
+    std::cout << "uintptr_t currentMapBaseAdress        = " << currentMapBaseAdress << std::endl;
+    std::cout << "uintptr_t decAmmoInstructionAdress    = " << decAmmoInstructionAdress << std::endl;
+#endif 
 
     while (true)
     {
 
-        //On the terminal control
-        if (strcmp(CurrentMapName, oldMapName) != 0)
+        if ((GetAsyncKeyState(VK_NUMPAD6) & 1))
         {
-            std::cout << "Updating entity list...." << std::endl;
-
-           
-            memcpy_s(oldMapName, BUFFER_MAP_NAME_SIZE, CurrentMapName, BUFFER_MAP_NAME_SIZE);
-        }
-        if (GetAsyncKeyState(VK_F2) & 1)
-        {
-
+          
+            bAimbot = !bAimbot;
+            PrintBanner(&bHealth, &bAmmo, &bAmmoNop, &bAimbot);
         }
         if (GetAsyncKeyState(VK_NUMPAD0) & 1)
         {
-            delete[] oldMapName;
-            fclose(f);
-            FreeConsole();
-            FreeLibraryAndExitThread(hModule, 0);
-            exit(0);
+            break;
         }
         if (GetAsyncKeyState(VK_NUMPAD1) & 1)
         {
@@ -106,7 +110,7 @@ DWORD ThreadMain(HMODULE hModule)
             {
                 cmd::ShowCmd();
             }
-            PrintBanner();
+
         }
         if (GetAsyncKeyState(VK_NUMPAD2) & 1)
         {
@@ -121,13 +125,13 @@ DWORD ThreadMain(HMODULE hModule)
         if (GetAsyncKeyState(VK_NUMPAD3) & 1)
         {
             bHealth = !bHealth;
-            std::cout << "[INFO] Freeze health "<< boolToStr(bHealth) << std::endl;
+            PrintBanner(&bHealth, &bAmmo, &bAmmoNop, &bAimbot);
         }
         if (GetAsyncKeyState(VK_NUMPAD4) & 1)
         {
             bAmmo  = !bAmmo;
 
-            std::cout << "[INFO] Freeze ammo" << boolToStr(bAmmo) << std::endl;
+            PrintBanner(&bHealth, &bAmmo, &bAmmoNop, &bAimbot);
         }
         if (GetAsyncKeyState(VK_NUMPAD5) & 1)
         {
@@ -135,69 +139,92 @@ DWORD ThreadMain(HMODULE hModule)
 
             if (bAmmoNop)
             {
-                if (Nop((DWORD*)decAmmoInstructionAdress, (unsigned int)2))
+                if (!Nop((DWORD*)decAmmoInstructionAdress, (unsigned int)2))
                 {
-                    std::cout << "[INFO] nop decremantation ammo enable" << std::endl;
-                }
-                else {
+
+                    PrintBanner(&bHealth, &bAmmo, &bAmmoNop, &bAimbot);
+                    bAmmoNop = !bAmmoNop;
                     std::cout << "[WARNING] nop decrementation ammo failed" << std::endl;
-                    std::cout << "[SYS_ERROR] "<< GetLastError() << std::endl;
+                    std::cout << "[SYS_ERROR] " << GetLastError() << std::endl;
                 }
             }
             else {
-                if (Patch((char*)decAmmoInstructionAdress, (char*)"\xff\x0E", (unsigned int)2 ))
+                if (!Patch((char*)decAmmoInstructionAdress, (char*)"\xff\x0E", (unsigned int)2))
                 {
-                    std::cout << "[INFO] dec ammo instruction restored" << std::endl;
-                } else {
+
+                    PrintBanner(&bHealth, &bAmmo, &bAmmoNop, &bAimbot);
+                    bAmmoNop = !bAmmoNop;
                     std::cout << "[WARNING] restor ammo decrementation failed" << std::endl;
                     std::cout << "[SYS_ERROR] " << GetLastError() << std::endl;
                 }
             }
         }
-
         //Execute functions
         if (bHealth)
         {
             //Freeze heal value
-            *(int*)FindAdressWithOffsets(myPlayerBaseAdress, healthOffsets) = 1337;
+            LocalPlayer->health = 1337;
         }
         if (bAmmo)
         {
             //Freeze ammo value
-            *(int*)FindAdressWithOffsets(myPlayerBaseAdress, ammoOffsets) = 1337;
+            LocalPlayer->health = 1337;
         }
-        Sleep(100);
+        //Control threads
+            if (hAimbotThread == INVALID_HANDLE_VALUE && threadAlive == false && bAimbot)
+            {
+                //Create aimbot thread
+                AimbotParams = (pAimbotThreadParams)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(AimbotThreadParams));
+
+                if (AimbotParams == NULL)
+                {
+#ifdef DEBUG
+                    std::cout << "[DEBUG][ERROR at 181] Couldn't alloc memory" << std::endl;          
+#endif
+                }
+                else {
+                    AimbotParams->pEntList = entList;
+                    AimbotParams->pLocalPlayer = LocalPlayer;
+                    AimbotParams->pPlayerCounter = currentPlayerCounter;
+                
+                    hAimbotThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)AimbotThreadFunc, AimbotParams, 0, &dwAimbotThreadExitCode);
+
+                    if (hAimbotThread == INVALID_HANDLE_VALUE)
+                    {
+#ifdef DEBUG
+                        std::cout << "[DEBUG][ERROR at 194] Couldn't create thread" << std::endl;
+#endif
+                    }
+                    else {
+
+                        threadAlive = true;
+
+
+                        PrintBanner(&bHealth, &bAmmo, &bAmmoNop, &bAimbot);
+                    }
+                }
+            }
+            if (!bAimbot && threadAlive == true)
+            {
+                if (GetExitCodeThread(hAimbotThread, &dwAimbotThreadExitCode)) 
+                {
+                    if (TerminateThread(hAimbotThread, dwAimbotThreadExitCode))
+                    {
+                        threadAlive = false;
+                        hAimbotThread = INVALID_HANDLE_VALUE;
+
+                        HeapFree(GetProcessHeap(), 0, AimbotParams);
+                        AimbotParams = NULL;
+
+
+                        PrintBanner(&bHealth, &bAmmo, &bAmmoNop, &bAimbot);
+                    }
+                }
+            }
+        Sleep(50);
     }
-}
-void PrintBanner()
-{
-    //std::cout << "  |                                   |" << std::endl;
-    std::system("cls");
-    std::cout << "  +--Menu-----------------------------+" << std::endl;
-    std::cout << "  |                                   |" << std::endl;
-    std::cout << "  |   [F2] DEBUG                      |" << std::endl;
-    std::cout << "  |   [0] eject trainer (exit)        |" << std::endl;
-    std::cout << "  |   [1] help                        |" << std::endl;
-    std::cout << "  |   [2] hide/Show console           |" << std::endl;
-    std::cout << "  |                                   |" << std::endl;
-    std::cout << "  +--Freeze---------------------------+" << std::endl;
-    std::cout << "  |                                   |" << std::endl;
-    std::cout << "  |   [3] freeze health               |" << std::endl;
-    std::cout << "  |   [4] freeze ammo                 |" << std::endl;
-    std::cout << "  |                                   |" << std::endl;
-    std::cout << "  +--Nop------------------------------+" << std::endl;
-    std::cout << "  |                                   |" << std::endl;
-    std::cout << "  |   [5] nop ammo                    |" << std::endl;
-    std::cout << "  |                                   |" << std::endl;
-    std::cout << "  +-----------------------------------+" << std::endl;
-}
-std::string boolToStr(bool mybool)
-{
-    if (mybool)
-    {
-        return (std::string)"enable";
-    } 
-    else {
-        return (std::string)"disable";
-    }
+    fclose(f);
+    FreeConsole();
+    FreeLibraryAndExitThread(hModule, 0);
+    return 0;
 }

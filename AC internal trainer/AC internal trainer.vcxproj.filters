@@ -25,6 +25,21 @@
     <Filter Include="Player">
       <UniqueIdentifier>{1767537e-5ce0-4e8c-bcf5-6b84e4f22759}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DllHelper">
+      <UniqueIdentifier>{10495b1a-ce75-44ef-a73f-d2f335da2fb1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="advanced features">
+      <UniqueIdentifier>{004d6880-10b8-4ea2-b43b-6f2bcffe3758}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="advanced features\teleport">
+      <UniqueIdentifier>{6ff11ddb-9cab-45c4-a197-1b6e4ef162d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="advanced features\aimbot">
+      <UniqueIdentifier>{80a67b8b-0f7c-4f1d-9ad0-85acfbae3351}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Vec3">
+      <UniqueIdentifier>{609299d1-e041-4981-8aa9-59eeb96a2bf7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -45,8 +60,17 @@
     <ClInclude Include="Player.h">
       <Filter>Player</Filter>
     </ClInclude>
-    <ClInclude Include="Vec3.h">
-      <Filter>Player</Filter>
+    <ClInclude Include="dllHelper.h">
+      <Filter>DllHelper</Filter>
+    </ClInclude>
+    <ClInclude Include="teleport.h">
+      <Filter>advanced features\teleport</Filter>
+    </ClInclude>
+    <ClInclude Include="aimbot.h">
+      <Filter>advanced features\aimbot</Filter>
+    </ClInclude>
+    <ClInclude Include="vector3.h">
+      <Filter>Vec3</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -61,6 +85,18 @@
     </ClCompile>
     <ClCompile Include="cmd.cpp">
       <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="DllHelper.cpp">
+      <Filter>DllHelper</Filter>
+    </ClCompile>
+    <ClCompile Include="teleport.cpp">
+      <Filter>advanced features\teleport</Filter>
+    </ClCompile>
+    <ClCompile Include="aimbot.cpp">
+      <Filter>advanced features\aimbot</Filter>
+    </ClCompile>
+    <ClCompile Include="vector3.cpp">
+      <Filter>Vec3</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

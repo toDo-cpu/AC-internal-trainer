@@ -12,6 +12,8 @@ namespace cmd {
 
 	FILE* CreateCmd();
 
+	BOOL ResizeCmd();
+
 	void CloseCmd(FILE* f);
 }
 

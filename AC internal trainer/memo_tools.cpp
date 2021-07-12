@@ -1,11 +1,10 @@
-#include "memo_tools.h"
-#include "pch.h"
 #include <Windows.h>
 #include <TlHelp32.h>
 #include <iostream>
 #include <vector>
 
-#include "Vec3.h"
+#include "memo_tools.h"
+#include "pch.h"
 
 //FindAdressWithOffsetsEx is for external 
 //FindAdressWithOffsets is for internal
@@ -15,7 +14,6 @@ uintptr_t FindAdressWithOffsetsEx(HANDLE hproc, uintptr_t modBaseAdress, std::ve
 
     for (unsigned int i = 0; i < offsets.size(); i++)
     {
-        std::cout << i << std::endl;
 
         //RRM (in , in , out , in , out)
         ReadProcessMemory(hproc, (BYTE*)addr, &addr, sizeof(addr), 0);
@@ -107,14 +105,4 @@ BOOL Nop(DWORD* dst, unsigned int size)
     }
 
     return result;
-}
-Vec3 ResolveCoordStruct( std::vector <unsigned int> x,std::vector <unsigned int> y,std::vector <unsigned int> z,uintptr_t entBaseAdress)
-{
-    struct Vec3 dst;
-
-    dst.x = (float*)FindAdressWithOffsets(entBaseAdress, x);
-    dst.y = (float*)FindAdressWithOffsets(entBaseAdress, y);
-    dst.z = (float*)FindAdressWithOffsets(entBaseAdress, z);
-
-    return (Vec3)dst;
 }

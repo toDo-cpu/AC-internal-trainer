@@ -1,7 +1,5 @@
 #include <vector>
 
-
-
 //Entity list
 unsigned int CurrentMapNameOffset = { 0x109EC0 };
 unsigned int PlayerCounterOffset = { 0x10F500 };
@@ -20,7 +18,6 @@ std::vector <unsigned int> HeadCoordZOffsets = { 0x0c };
 std::vector <unsigned int> BodyCoordXOffsets = { 0x34 };
 std::vector <unsigned int> BodyCoordYOffsets = { 0x38 };
 std::vector <unsigned int> BodyCoordZOffsets = { 0x3c };
-
 
 //asm insutrcions offsets
 uintptr_t decAmmoInstructionOffset = 0x637e9;

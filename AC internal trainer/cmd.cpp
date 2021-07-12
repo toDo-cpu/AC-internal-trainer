@@ -34,3 +34,18 @@ void cmd::CloseCmd(FILE* f)
 	fclose(f);
 	FreeConsole();
 }
+
+BOOL cmd::ResizeCmd()
+{
+	if (cmd::IsCmdVisble())
+	{
+		SMALL_RECT newSize;
+		newSize.Left = 20;
+		newSize.Top = 40;
+		newSize.Bottom = newSize.Top;
+		newSize.Right = newSize.Left;
+
+		return SetConsoleWindowInfo(GetConsoleWindow(), true, &newSize);
+	}
+	return true;
+}
